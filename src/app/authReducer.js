@@ -104,23 +104,7 @@ export const login = (credentials) => async (dispatch) => {
         localStorage.setItem("user", JSON.stringify(response.data.user));
         location.href= "/"
     } catch (error) {
-        if (error.response?.status === 401) {
-            // Tentative de refresh du token puis retry
-            try {
-                await dispatch(refresh());
-                // Retry login après refresh
-                const response = await axios.post('/auth/login', credentials);
-                dispatch(loginSuccess(response.data));
-                setTokenWithExpiry(response.data.access_token);
-                localStorage.setItem("refresh", response.data.refresh_token);
-                localStorage.setItem("user", JSON.stringify(response.data.user));
-                location.href= "/"
-            } catch (refreshError) {
-                dispatch(loginFailure(refreshError.response?.data?.message || refreshError.message));
-            }
-        } else {
-            dispatch(loginFailure(error.response?.data?.message || error.message));
-        }
+        dispatch(loginFailure(error.response?.data?.message || error.message));
     }
 };
 
@@ -138,25 +122,8 @@ export const register = (userData) => async (dispatch) => {
             dispatch(registerFailure("Les mots de passe ne correspondent pas"));
         }
     } catch (error) {
-        if (error.response?.status === 401) {
-            try {
-                await dispatch(refresh());
-                if(userData.password == userData.confirmPassword) {
-                    const response = await axios.post('/auth/register', { ...userData, "nom": userData.name }, { headers: { 
-                        "Content-Type": "application/json"
-                    }});
-                    dispatch(registerSuccess(response.data));
-                    location.href = "/auth/login";
-                } else {
-                    dispatch(registerFailure("Les mots de passe ne correspondent pas"));
-                }
-            } catch (refreshError) {
-                dispatch(registerFailure(refreshError.response?.data?.message || refreshError.message));
-            }
-        } else {
-            console.log("ERROR", error);
-            dispatch(registerFailure(error.response?.data?.message || error.message));
-        }
+        console.log("ERROR", error);
+        dispatch(registerFailure(error.response?.data?.message || error.message));
     }
 };
 

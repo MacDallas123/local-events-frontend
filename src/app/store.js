@@ -1,9 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { authReducer } from './authReducer';
+import { userReducer } from './userReducer';
+import { eventReducer } from './eventReducer';
+import { dashboardReducer } from './dashboardReducer';
 
 
 export default configureStore({
     reducer: {
-        auth: authReducer
+        auth: authReducer,
+        user: userReducer,
+        event: eventReducer,
+        dashboard: dashboardReducer
     }
 });

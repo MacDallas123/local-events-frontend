@@ -18,7 +18,8 @@ import {
   Person, 
   KeyboardArrowDown,
   Notifications,
-  Search
+  Search,
+  Home
 } from "@mui/icons-material";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
@@ -62,9 +63,9 @@ const Header = () => {
         overflow: "auto"
       }}
     >
-      <Toolbar sx={{ minHeight: '70px !important', px: { xs: 2, md: 4 } }}>
+      <Toolbar sx={{ minHeight: '70px !important', px: { xs: 2, md: 4, display: "flex" } }}>
         {/* Logo and Brand */}
-        <Box display="flex" alignItems="center" sx={{ mr: 4 }}>
+        <Box display="flex" alignItems="center" sx={{ mr: 4, flex: 1 }}>
           <Box
             sx={{
               display: 'flex',
@@ -90,9 +91,11 @@ const Header = () => {
                 letterSpacing: '-0.5px',
                 lineHeight: 1.2,
                 fontSize: { xs: '1.2rem', md: '1.7rem'},
+                flex: 1
               }}
+              
             >
-              LocalEvents
+                LocalEvents
             </Typography>
             <Typography 
               variant="caption" 
@@ -118,7 +121,7 @@ const Header = () => {
             ml: 4,
           }}
         >
-          <Button
+          {/* <Button
             color="inherit"
             startIcon={<Search />}
             sx={{
@@ -134,7 +137,7 @@ const Header = () => {
             }}
           >
             Découvrir
-          </Button>
+          </Button> */}
           <Button
             color="inherit"
             sx={{
@@ -155,8 +158,23 @@ const Header = () => {
 
         {/* Action Buttons */}
         <Box display="flex" alignItems="center" gap={1.5}>
-          {/* Notifications */}
+          {/* Home */}
           <IconButton
+            sx={{
+              color: 'white',
+              backgroundColor: alpha(theme.palette.common.white, 0.1),
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.common.white, 0.2),
+              },
+            }}
+
+            href="/"
+          >
+            <Home />
+          </IconButton>
+
+          {/* Notifications */}
+          {/* <IconButton
             sx={{
               color: 'white',
               backgroundColor: alpha(theme.palette.common.white, 0.1),
@@ -166,12 +184,12 @@ const Header = () => {
             }}
           >
             <Notifications />
-          </IconButton>
+          </IconButton> */}
 
           {/* Create Event Button */}
-          <Button
+          {/* <Button
             variant="contained"
-            startIcon={<Add />}
+            // startIcon={<Add />}
             sx={{
               backgroundColor: alpha(theme.palette.common.white, 0.2),
               color: 'white',
@@ -195,10 +213,11 @@ const Header = () => {
               transition: 'all 0.2s ease-in-out',
             }}
           >
-            <Typography sx={{ display: { xs: 'none', md: 'flex' } }}>
+            <Add />
+            <Typography sx={{ display: { xs: 'none', md: 'flex' }, ml: 1 }}>
               Créer un événement
             </Typography>
-          </Button>
+          </Button> */}
 
           {/* User Menu */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

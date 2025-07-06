@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { TextField, Button, Box, InputAdornment, IconButton, useTheme, Typography, CircularProgress } from "@mui/material";
-import { Visibility, VisibilityOff, Email, Lock, Person, ErrorOutline } from "@mui/icons-material";
+import { TextField, Button, Box, InputAdornment, IconButton, useTheme, Typography, CircularProgress, Autocomplete, Select, MenuItem } from "@mui/material";
+import { Visibility, VisibilityOff, Email, Lock, Person, ErrorOutline, Phone, Numbers } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { clearError, register } from "../../app/authReducer";
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
-  const [values, setValues] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [values, setValues] = useState({ name: "", email: "", password: "", telephone: "", confirmPassword: "", role: "user" });
   const theme = useTheme();
   const dispatch = useDispatch();
   const error = useSelector((state) => state.auth.error);
@@ -19,6 +19,11 @@ export default function Register() {
   };
 
   const handleShowPassword = () => setShowPassword((show) => !show);
+
+  const roles = [
+    { label: "Utilisateur", value: "user" },
+    { label: "Organisateur", value: "organizer" },
+  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -86,6 +91,50 @@ export default function Register() {
             ),
           }}
         />
+        <TextField
+          label="Telephone"
+          name="telephone"
+          type="number"
+          value={values.telephone}
+          onChange={handleChange}
+          fullWidth
+          margin="normal"
+          required
+          size="small"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Phone fontSize="small" />
+              </InputAdornment>
+            ),
+          }}
+        />
+        {/* <Autocomplete
+          options={roles}
+          getOptionLabel={(role) => role.label}
+          value={(role) => role.value}
+          onChange={(event, newValue) => {
+              setValues({ ...values, role: newValue });
+          }}
+          renderInput={(params) => {
+            <TextField {...params} label="Combo box" variant="outlined" />
+          }}
+        /> */}
+        <Select
+          value={values.role}
+          name="role"
+          onChange={handleChange}
+          fullWidth
+          margin="normal"
+          required
+          size="small"
+          inputProps={{ 
+            'aria-label' : 'Without label',
+          }}
+        >
+          {roles?.map((role) =>  <MenuItem value={role.value}>{role.label}</MenuItem> )}
+          <MenuItem></MenuItem>
+        </Select>
         <TextField
           label="Mot de passe"
           name="password"

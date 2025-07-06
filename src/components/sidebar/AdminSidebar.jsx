@@ -66,10 +66,10 @@ const AdminSidebar = () => {
       icon: <Category />,
       path: '/admin/categories',
       color: theme.palette.secondary.main,
-      subItems: [
+      /* subItems: [
         { title: 'Toutes les catégories', path: '/admin/categories' },
         { title: 'Ajouter une catégorie', path: '/admin/categories/create' },
-      ]
+      ] */
     },
     {
       id: 'users',
@@ -323,7 +323,7 @@ const AdminSidebar = () => {
   return (
     <Box sx={{ display: 'flex' }}>
       {/* Mobile Menu Button */}
-      {isMobile && (
+      {(isMobile && !mobileOpen) && (
         <IconButton
           color="inherit"
           aria-label="open drawer"
@@ -331,7 +331,7 @@ const AdminSidebar = () => {
           onClick={handleDrawerToggle}
           sx={{
             position: 'fixed',
-            top: 20,
+            bottom: 20,
             left: 20,
             zIndex: 1300,
             backgroundColor: theme.palette.primary.main,

@@ -1,6 +1,6 @@
 
 // Users.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Paper,
@@ -50,8 +50,13 @@ import {
   CalendarToday,
   Verified,
   Warning,
-  People
+  People,
+  AdminPanelSettings
 } from '@mui/icons-material';
+import Footer from '../../components/footer/Footer';
+import StatCard from '../../components/card/StatCard';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteUser, getAllUsers } from '../../app/userReducer';
 
 const Users = () => {
   const theme = useTheme();
@@ -63,109 +68,40 @@ const Users = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [users, setUsers] = useState([]);
+  const dispatch = useDispatch();
+
+  const requestDatas = useSelector((state) => state.datas);
 
   // Sample users data
-  const users = [
-    {
-      id: 1,
-      name: 'Marie Dubois',
-      email: 'marie.dubois@email.com',
-      phone: '+33 1 23 45 67 89',
-      location: 'Paris, France',
-      status: 'active',
-      role: 'user',
-      joinDate: '2024-01-15',
-      eventsCreated: 12,
-      eventsAttended: 45,
-      avatar: 'MD',
-      verified: true,
-    },
-    {
-      id: 2,
-      name: 'Jean Martin',
-      email: 'jean.martin@email.com',
-      phone: '+33 1 98 76 54 32',
-      location: 'Lyon, France',
-      status: 'active',
-      role: 'organizer',
-      joinDate: '2024-02-10',
-      eventsCreated: 8,
-      eventsAttended: 23,
-      avatar: 'JM',
-      verified: true,
-    },
-    {
-      id: 3,
-      name: 'Sophie Bernard',
-      email: 'sophie.bernard@email.com',
-      phone: '+33 1 11 22 33 44',
-      location: 'Marseille, France',
-      status: 'suspended',
-      role: 'user',
-      joinDate: '2024-03-05',
-      eventsCreated: 0,
-      eventsAttended: 5,
-      avatar: 'SB',
-      verified: false,
-    },
-    {
-      id: 4,
-      name: 'Pierre Durand',
-      email: 'pierre.durand@email.com',
-      phone: '+33 1 55 66 77 88',
-      location: 'Toulouse, France',
-      status: 'active',
-      role: 'admin',
-      joinDate: '2023-12-20',
-      eventsCreated: 25,
-      eventsAttended: 67,
-      avatar: 'PD',
-      verified: true,
-    },
-    {
-      id: 5,
-      name: 'Emma Rousseau',
-      email: 'emma.rousseau@email.com',
-      phone: '+33 1 99 88 77 66',
-      location: 'Nice, France',
-      status: 'inactive',
-      role: 'user',
-      joinDate: '2024-04-12',
-      eventsCreated: 3,
-      eventsAttended: 8,
-      avatar: 'ER',
-      verified: false,
-    },
-  ];
-
   const stats = [
     {
       title: 'Total Utilisateurs',
       value: users.length,
-      change: '+12%',
+      change: '...%',
       icon: <People />,
       color: theme.palette.primary.main,
     },
     {
-      title: 'Utilisateurs Actifs',
-      value: users.filter(u => u.status === 'active').length,
-      change: '+8%',
+      title: 'Rôle Administrateur',
+      value: users.filter(u => u.role === 'admin').length,
+      change: '...%',
       icon: <CheckCircle />,
       color: theme.palette.success.main,
     },
     {
-      title: 'Organisateurs',
+      title: 'Rôle Organisateur',
       value: users.filter(u => u.role === 'organizer').length,
-      change: '+15%',
+      change: '...%',
       icon: <Verified />,
       color: theme.palette.secondary.main,
     },
     {
-      title: 'Suspendus',
-      value: users.filter(u => u.status === 'suspended').length,
-      change: '-5%',
-      icon: <Warning />,
-      color: theme.palette.error.main,
+      title: 'Rôle Utilisateur',
+      value: users.filter(u => u.role === 'user').length,
+      change: '...%',
+      icon: <AdminPanelSettings />,
+      color: theme.palette.primary.light,
     },
   ];
 
@@ -200,7 +136,7 @@ const Users = () => {
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || user.role === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -213,41 +149,36 @@ const Users = () => {
     setPage(0);
   };
 
-  const StatCard = ({ title, value, change, icon, color }) => (
-    <Card sx={{ borderRadius: '16px', border: `1px solid ${alpha(color, 0.1)}` }}>
-      <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: color }}>
-              {value}
-            </Typography>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 0.5 }}>
-              {title}
-            </Typography>
-            <Chip
-              label={change}
-              size="small"
-              sx={{
-                mt: 1,
-                backgroundColor: alpha(color, 0.1),
-                color: color,
-                fontWeight: 600,
-              }}
-            />
-          </Box>
-          <Avatar sx={{ backgroundColor: alpha(color, 0.1), color: color, width: 48, height: 48 }}>
-            {icon}
-          </Avatar>
-        </Box>
-      </CardContent>
-    </Card>
-  );
+  
+  const fetchUsers = async () => {
+    const datas = await dispatch(getAllUsers());
+    setUsers(datas.map((item) => {
+      return {
+        id: item.id,
+        name: item.nom,
+        email: item.email,
+        phone: item.telephone,
+        role: item.role,
+        joinDate: item.created_at
+      };
+    }));
+  }
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleUserDelete = async () => {
+    await dispatch(deleteUser(selectedUser.id));
+    await fetchUsers();
+    handleUserMenuClose();
+  }
 
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1, color: theme.palette.primary.main }}>
           Gestion des Utilisateurs
         </Typography>
         <Typography variant="body1" sx={{ color: 'text.secondary' }}>
@@ -278,20 +209,20 @@ const Users = () => {
                 </InputAdornment>
               ),
             }}
-            sx={{ minWidth: 300 }}
+            sx={{ minWidth: { xs: "80%", md: 300 } }}
           />
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Statut</InputLabel>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: "wrap" }}>
+            <FormControl size="small" sx={{ minWidth: { xs: "80%", md: 120 } }}>
+              <InputLabel>Rôle</InputLabel>
               <Select
                 value={statusFilter}
                 label="Statut"
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <MenuItem value="all">Tous</MenuItem>
-                <MenuItem value="active">Actifs</MenuItem>
-                <MenuItem value="inactive">Inactifs</MenuItem>
-                <MenuItem value="suspended">Suspendus</MenuItem>
+                <MenuItem value="admin">Administrateur</MenuItem>
+                <MenuItem value="organizer">Organisateur</MenuItem>
+                <MenuItem value="user">Utilisateur</MenuItem>
               </Select>
             </FormControl>
             <Button
@@ -314,14 +245,13 @@ const Users = () => {
       </Paper>
 
       {/* Users Table */}
-      <Paper sx={{ borderRadius: '16px', overflow: 'hidden' }}>
+      <Paper sx={{ borderRadius: '16px', overflow: 'hidden', mb: 4 }}>
         <TableContainer>
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: alpha(theme.palette.primary.main, 0.05) }}>
                 <TableCell sx={{ fontWeight: 600 }}>Utilisateur</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Contact</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Statut</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Rôle</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Événements</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Inscription</TableCell>
@@ -361,23 +291,7 @@ const Users = () => {
                         <Phone sx={{ fontSize: 14, color: 'text.secondary' }} />
                         <Typography variant="body2">{user.phone}</Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <LocationOn sx={{ fontSize: 14, color: 'text.secondary' }} />
-                        <Typography variant="body2">{user.location}</Typography>
-                      </Box>
                     </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={user.status}
-                      size="small"
-                      sx={{
-                        backgroundColor: alpha(getStatusColor(user.status), 0.1),
-                        color: getStatusColor(user.status),
-                        fontWeight: 600,
-                        textTransform: 'capitalize',
-                      }}
-                    />
                   </TableCell>
                   <TableCell>
                     <Chip
@@ -442,19 +356,7 @@ const Users = () => {
           sx: { borderRadius: '12px', minWidth: 200 }
         }}
       >
-        <MenuItem onClick={handleUserMenuClose}>
-          <Edit sx={{ mr: 2 }} />
-          Modifier
-        </MenuItem>
-        <MenuItem onClick={handleUserMenuClose}>
-          <Email sx={{ mr: 2 }} />
-          Envoyer un message
-        </MenuItem>
-        <MenuItem onClick={handleUserMenuClose}>
-          <Block sx={{ mr: 2 }} />
-          Suspendre
-        </MenuItem>
-        <MenuItem onClick={handleUserMenuClose} sx={{ color: 'error.main' }}>
+        <MenuItem onClick={() => handleUserDelete()} sx={{ color: 'error.main' }}>
           <Delete sx={{ mr: 2 }} />
           Supprimer
         </MenuItem>
@@ -510,6 +412,8 @@ const Users = () => {
             </Box>
         </DialogContent>
     </Dialog>
+
+    <Footer />
     </Box>
   );
 }

@@ -9,6 +9,8 @@ import Events from './views/Events';
 import Admin from './layouts/Admin';
 import Users from './views/admin/Users';
 import Dashboard from './views/admin/Dashboard';
+import EventsManagement from './views/admin/EventsManagement';
+import Categories from './views/admin/Categories';
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
         <Route path="/admin" element={<Admin />}>
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/users" element={<Users />} />
+          <Route path="/admin/events" element={<EventsManagement />} />
+          <Route path="/admin/categories" element={<Categories />} />
           <Route path="/admin" element={<Navigate  to="/admin/dashboard" />} />
         </Route>
 

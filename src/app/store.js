@@ -3,6 +3,7 @@ import { authReducer } from './authReducer';
 import { userReducer } from './userReducer';
 import { eventReducer } from './eventReducer';
 import { dashboardReducer } from './dashboardReducer';
+import { categoryReducer } from './categoryReducer';
 
 
 export default configureStore({
@@ -10,6 +11,7 @@ export default configureStore({
         auth: authReducer,
         user: userReducer,
         event: eventReducer,
-        dashboard: dashboardReducer
+        dashboard: dashboardReducer,
+        category: categoryReducer
     }
 });

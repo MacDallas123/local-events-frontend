@@ -20,8 +20,8 @@ export const authSlice = createSlice({
         },
         loginSuccess: (state, action) => {
             state.loading = false;
-            state.user = action.payload.user;
-            state.token = action.payload.access_token;
+            //state.user = action.payload.user;
+            //state.token = action.payload.access_token;
             state.error = null;
             state.target = "/";
             console.log("ACTION", action);
@@ -34,7 +34,7 @@ export const authSlice = createSlice({
             state.loading = true;
             state.error = null;
         },
-        registerSuccess: (state, action) => {
+        registerSuccess: (state) => {
             state.loading = false;
             state.error = null;
             state.target = "/auth/login";
@@ -89,6 +89,7 @@ function setTokenWithExpiry(token) {
 // Vérifie si le token est expiré et le rafraîchit si besoin
 export const checkAndRefreshTokenIfNeeded = () => async (dispatch) => {
     const expiry = localStorage.getItem("token_expiry");
+    if(!expiry) await dispatch(refresh());
     if (expiry && new Date() > new Date(expiry)) {
         await dispatch(refresh());
     }
@@ -102,9 +103,11 @@ export const login = (credentials) => async (dispatch) => {
         setTokenWithExpiry(response.data.access_token);
         localStorage.setItem("refresh", response.data.refresh_token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
-        location.href= "/"
+        //location.href= "/"
+        return { status: response?.status, datas: response?.data };
     } catch (error) {
         dispatch(loginFailure(error.response?.data?.message || error.message));
+        return { status: 500 }
     }
 };
 
@@ -116,7 +119,7 @@ export const register = (userData) => async (dispatch) => {
             const response = await axios.post('/auth/register', { ...userData, "nom": userData.name }, { headers: { 
                 "Content-Type": "application/json"
             }});
-            dispatch(registerSuccess(response.data));
+            dispatch(registerSuccess());
             location.href = "/auth/login";
         } else {
             dispatch(registerFailure("Les mots de passe ne correspondent pas"));
@@ -130,7 +133,7 @@ export const register = (userData) => async (dispatch) => {
 export const refresh = () => async (dispatch) => {
     try {
         const refreshToken = localStorage.getItem("refresh");
-        const response = await axios.post('/refresh', {}, { headers: { 
+        const response = await axios.post('/auth/refresh', {}, { headers: { 
             "Content-Type": "application/json",
             "Authorization": `Bearer ${refreshToken}`
         }});
@@ -158,10 +161,10 @@ export const logout = () => async (dispatch) => {
                 "Authorization": `Bearer ${token}`
             }
         });
-        console.log("LOGOUT SUCCEED", response);
         dispatch(logoutSuccess());
         localStorage.clear();
-        location.href = "/auth/login";
+        console.log("RESPONSE", response);
+        return { status: response?.status, datas: response?.data };
     } catch (error) {
         dispatch(logoutFailure(error.response?.data?.message || error.message));
     }

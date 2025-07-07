@@ -34,7 +34,11 @@ import {
   Tooltip,
   ListItemIcon,
   ListItemText,
-  Divider
+  Divider,
+  Snackbar,
+  DialogContentText,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import {
   Search,
@@ -56,6 +60,7 @@ import {
 import Footer from '../../components/footer/Footer';
 import StatCard from '../../components/card/StatCard';
 import { useDispatch, useSelector } from 'react-redux';
+import { createCategory, deleteCategory, getAllCategories, updateCategory } from '../../app/categoryReducer';
 // import { deleteCategory, getAllCategories, createCategory, updateCategory } from '../../app/categoryReducer';
 
 const Categories = () => {
@@ -77,6 +82,15 @@ const Categories = () => {
     description: ''
   });
   const dispatch = useDispatch();
+
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+  const { loading, error } = useSelector(state => state.category);
 
   // Icônes pour les catégories (vous pouvez personnaliser selon vos besoins)
   const categoryIcons = [
@@ -143,7 +157,7 @@ const Categories = () => {
 
   const handleCategoryMenuClose = () => {
     setCategoryMenuAnchorEl(null);
-    setSelectedCategory(null);
+    //setSelectedCategory(null);
   };
 
   const handleEditCategory = () => {
@@ -171,52 +185,94 @@ const Categories = () => {
   };
 
   const fetchCategories = async () => {
-    // const datas = await dispatch(getAllCategories());
-    /*setCategories(datas.map((item) => {
-      return {
-        id: item.id,
-        nom: item.nom,
-        description: item.description,
-        created_at: new Date(item.created_at).toLocaleDateString('fr-FR'),
-        events_count: item.events?.length || 0 // Supposant que les événements sont inclus dans la réponse
-      };
-    }));*/
+    try {
+      const result = await dispatch(getAllCategories());
+      if (result) {
+        setCategories(result.map(item => ({
+          id: item.id,
+          nom: item.nom,
+          description: item.description,
+          created_at: new Date(item.created_at).toLocaleDateString('fr-FR'),
+          events_count: item.events?.length || 0
+        })));
+      }
+    } catch (err) {
+      showSnackbar('Erreur lors du chargement des catégories', 'error');
+    }
   };
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  const handleCategoryDelete = async () => {
-    if (selectedCategory.events_count > 0) {
-      alert('Impossible de supprimer une catégorie qui contient des événements');
-      return;
-    }
-    // await dispatch(deleteCategory(selectedCategory.id));
-    await fetchCategories();
-    handleCategoryMenuClose();
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
   };
 
-  const handleCreateCategory = async () => {
-    if (!formData.nom.trim()) {
-      alert('Le nom de la catégorie est requis');
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
+
+  const handleCategoryDelete = async () => {
+    if (!selectedCategory) return;
+    
+    if (selectedCategory.events_count > 0) {
+      showSnackbar('Impossible de supprimer une catégorie avec des événements', 'warning');
       return;
     }
-    // await dispatch(createCategory(formData));
-    await fetchCategories();
-    setFormData({ nom: '', description: '' });
-    setOpenDialog(false);
+
+    setIsSubmitting(true);
+    try {
+      await dispatch(deleteCategory(selectedCategory.id));
+      await fetchCategories();
+      showSnackbar('Catégorie supprimée avec succès', 'success');
+    } catch (error) {
+      showSnackbar(error.message || 'Erreur lors de la suppression', 'error');
+    } finally {
+      setIsSubmitting(false);
+      setDeleteConfirmOpen(false);
+      handleCategoryMenuClose();
+    }
+  };
+
+    const handleCreateCategory = async () => {
+    if (!formData.nom.trim()) {
+      showSnackbar('Le nom de la catégorie est requis', 'warning');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await dispatch(createCategory(formData));
+      setFormData({ nom: '', description: '' });
+      setOpenDialog(false);
+      await fetchCategories();
+      showSnackbar('Catégorie créée avec succès', 'success');
+    } catch (error) {
+      showSnackbar(error.message || 'Erreur lors de la création', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleUpdateCategory = async () => {
     if (!editFormData.nom.trim()) {
-      alert('Le nom de la catégorie est requis');
+      showSnackbar('Le nom de la catégorie est requis', 'warning');
       return;
     }
-    // await dispatch(updateCategory(selectedCategory.id, editFormData));
-    await fetchCategories();
-    setEditFormData({ nom: '', description: '' });
-    setOpenEditDialog(false);
+    
+    setIsSubmitting(true);
+    try {
+      await dispatch(updateCategory(selectedCategory.id, editFormData));
+      setEditFormData({ nom: '', description: '' });
+      setOpenEditDialog(false);
+      await fetchCategories();
+      showSnackbar('Catégorie mise à jour avec succès', 'success');
+    } catch (error) {
+      showSnackbar(error.message || 'Erreur lors de la mise à jour', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFormChange = (field, value) => {
@@ -232,6 +288,10 @@ const Categories = () => {
       [field]: value
     }));
   };
+
+  useEffect(() => {
+    if(openEditDialog == false) setSelectedCategory(null);
+  }, [openEditDialog]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -410,7 +470,7 @@ const Categories = () => {
         </MenuItem>
         <Divider />
         <MenuItem 
-          onClick={handleCategoryDelete} 
+          onClick={() => { setDeleteConfirmOpen(true); handleCategoryMenuClose();}} 
           sx={{ color: 'error.main' }}
           disabled={selectedCategory?.events_count > 0}
         >
@@ -422,54 +482,132 @@ const Categories = () => {
           </ListItemText>
         </MenuItem>
       </Menu>
+        
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
 
-      {/* Add Category Dialog */}
+      {/* Dialogue de confirmation de suppression */}
       <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        maxWidth="sm"
-        fullWidth
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        maxWidth="xs"
         PaperProps={{
           sx: { borderRadius: '16px' }
         }}
       >
-        <DialogTitle>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Créer une nouvelle catégorie
-          </Typography>
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          Confirmer la suppression
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ pt: 2 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  label="Nom de la catégorie"
-                  fullWidth
-                  variant="outlined"
-                  value={formData.nom}
-                  onChange={(e) => handleFormChange('nom', e.target.value)}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="Description"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  variant="outlined"
-                  value={formData.description}
-                  onChange={(e) => handleFormChange('description', e.target.value)}
-                  placeholder="Description optionnelle de la catégorie..."
-                />
-              </Grid>
-            </Grid>
-          </Box>
+          <DialogContentText>
+            Êtes-vous sûr de vouloir supprimer la catégorie "{selectedCategory?.nom}" ?
+            Cette action est irréversible.
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Annuler</Button>
-          <Button variant="contained" onClick={handleCreateCategory}>
-            Créer la catégorie
+          <Button onClick={() => setDeleteConfirmOpen(false)}>Annuler</Button>
+          <Button 
+            onClick={handleCategoryDelete} 
+            color="error"
+            variant="contained"
+            disabled={isSubmitting}
+            startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
+          >
+            {isSubmitting ? 'Suppression...' : 'Confirmer'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialogue de creation et de modifications */}
+      <Dialog
+        open={openDialog}
+        onClose={() => !isSubmitting && setOpenDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { 
+            borderRadius: '16px',
+            background: theme.palette.background.paper
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          backgroundColor: alpha(theme.palette.primary.main, 0.1),
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Avatar sx={{ 
+              bgcolor: alpha(theme.palette.primary.main, 0.2),
+              color: theme.palette.primary.main
+            }}>
+              <Add />
+            </Avatar>
+            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: "15px", md: "20px"} }}>
+              Nouvelle catégorie
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ py: 3 }}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField
+                label="Nom de la catégorie"
+                fullWidth
+                variant="outlined"
+                value={formData.nom}
+                onChange={(e) => handleFormChange('nom', e.target.value)}
+                required
+                size='small'
+                disabled={isSubmitting}
+                sx={{ mb: 2, mt: 2 }}
+              />
+              <TextField
+                label="Description"
+                fullWidth
+                multiline
+                rows={4}
+                variant="outlined"
+                value={formData.description}
+                onChange={(e) => handleFormChange('description', e.target.value)}
+                placeholder="Décrivez cette catégorie..."
+                size='small'
+                disabled={isSubmitting}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ 
+          px: 3, 
+          py: 2,
+          borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+        }}>
+          <Button 
+            onClick={() => setOpenDialog(false)} 
+            disabled={isSubmitting}
+            sx={{ fontSize: { xs: "11px", md: "14px"} }}
+          >
+            Annuler
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleCreateCategory}
+            disabled={isSubmitting || !formData.nom.trim()}
+            startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
+            sx={{ ml: 1, fontSize: { xs: "11px", md: "14px"} }}
+          >
+            {isSubmitting ? 'Création...' : 'Créer la catégorie'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -485,7 +623,7 @@ const Categories = () => {
         }}
       >
         <DialogTitle>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <Typography sx={{ fontWeight: 700 }}>
             Modifier la catégorie
           </Typography>
         </DialogTitle>
@@ -497,6 +635,7 @@ const Categories = () => {
                   label="Nom de la catégorie"
                   fullWidth
                   variant="outlined"
+                  name='editName'
                   value={editFormData.nom}
                   onChange={(e) => handleEditFormChange('nom', e.target.value)}
                   required
@@ -508,6 +647,7 @@ const Categories = () => {
                   fullWidth
                   multiline
                   rows={3}
+                  name='editDescription'
                   variant="outlined"
                   value={editFormData.description}
                   onChange={(e) => handleEditFormChange('description', e.target.value)}

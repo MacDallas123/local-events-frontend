@@ -15,7 +15,7 @@ const AdminDashboard = ({ dashboardDatas }) => {
                 </Typography>
             </Box>
             {/* Stats Cards */}
-            <Grid container spacing={3} sx={{ mb: 4, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Grid container spacing={3} sx={{ mb: 4, display: "flex", alignItems: "start", justifyContent: "start" }}>
                 <Grid item xs={12} sm={6} md={3}>
                     <StatCard
                     title="Utilisateurs"

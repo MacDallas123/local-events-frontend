@@ -5,12 +5,13 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Register from './views/auth/Register';
 import Index from './views/home/Index';
 import Main from './layouts/Main';
-import Events from './views/Events';
+import Events from './views/Explore';
 import Admin from './layouts/Admin';
 import Users from './views/admin/Users';
 import Dashboard from './views/admin/Dashboard';
 import EventsManagement from './views/admin/EventsManagement';
 import Categories from './views/admin/Categories';
+import Explore from './views/Explore';
 
 function App() {
   return (
@@ -25,7 +26,7 @@ function App() {
 
         <Route path="/" element={<Main />}>
               <Route path="/index" element={<Index />} />
-              <Route path="/events" element={<Events />} />
+              <Route path="/explore" element={<Explore />} />
 
               <Route path="/" element={<Navigate  to="/index" />} />
         </Route>

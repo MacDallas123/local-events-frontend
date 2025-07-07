@@ -28,7 +28,8 @@ import {
   Analytics,
   Notifications,
   Menu as MenuIcon,
-  Close
+  Close,
+  AppRegistrationRounded
 } from "@mui/icons-material";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -73,7 +74,7 @@ const AdminSidebar = () => {
     },
     {
       id: 'users',
-      title: 'Liste des Utilisateurs',
+      title: 'Gestion des Utilisateurs',
       icon: <People />,
       path: '/admin/users',
       color: theme.palette.info.main,
@@ -84,6 +85,19 @@ const AdminSidebar = () => {
       icon: <Event />,
       path: '/admin/events',
       color: theme.palette.success.main,
+      /* subItems: [
+        { title: 'Tous les événements', path: '/admin/events' },
+        { title: 'Événements en attente', path: '/admin/events/pending' },
+        { title: 'Événements approuvés', path: '/admin/events/approved' },
+        { title: 'Événements terminés', path: '/admin/events/completed' },
+      ] */
+    },
+    {
+      id: 'events',
+      title: 'Gestion des Inscriptions',
+      icon: <AppRegistrationRounded />,
+      path: '/admin/registrations',
+      color: theme.palette.error.main,
       /* subItems: [
         { title: 'Tous les événements', path: '/admin/events' },
         { title: 'Événements en attente', path: '/admin/events/pending' },

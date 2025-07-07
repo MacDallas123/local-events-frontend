@@ -32,7 +32,11 @@ import {
   useTheme,
   alpha,
   TablePagination,
-  Tooltip
+  Tooltip,
+  DialogContentText,
+  CircularProgress,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import {
   Search,
@@ -56,7 +60,7 @@ import {
 import Footer from '../../components/footer/Footer';
 import StatCard from '../../components/card/StatCard';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteUser, getAllUsers } from '../../app/userReducer';
+import { createUser, deleteUser, getAllUsers, updateUser } from '../../app/userReducer';
 
 const Users = () => {
   const theme = useTheme();
@@ -71,7 +75,28 @@ const Users = () => {
   const [users, setUsers] = useState([]);
   const dispatch = useDispatch();
 
-  const requestDatas = useSelector((state) => state.datas);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [validateConfirmOpen, setValidateConfirmOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+
+  const [formData, setFormData] = useState({
+    nom: '',
+    email: '',
+    telephone: null,
+    role: 'user',
+  });
+  const [editFormData, setEditFormData] = useState({
+    nom: '',
+    email: '',
+    telephone: null,
+    role: 'user',
+  });
 
   // Sample users data
   const stats = [
@@ -123,6 +148,10 @@ const Users = () => {
     }
   };
 
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
+
   const handleUserMenuOpen = (event, user) => {
     setUserMenuAnchorEl(event.currentTarget);
     setSelectedUser(user);
@@ -130,7 +159,7 @@ const Users = () => {
 
   const handleUserMenuClose = () => {
     setUserMenuAnchorEl(null);
-    setSelectedUser(null);
+    //setSelectedUser(null);
   };
 
   const filteredUsers = users.filter(user => {
@@ -149,7 +178,32 @@ const Users = () => {
     setPage(0);
   };
 
-  
+  const handleFormChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleEditFormChange = (field, value) => {
+    setEditFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleEditUser = () => {
+    console.log("SELECTED USER", selectedUser);
+    setEditFormData({
+      nom: selectedUser.name,
+      email: selectedUser.email,
+      telephone: selectedUser.phone || '',
+      role: selectedUser.role
+    });
+    setOpenEditDialog(true);
+    handleUserMenuClose();
+  };
+
   const fetchUsers = async () => {
     const datas = await dispatch(getAllUsers());
     setUsers(datas.map((item) => {
@@ -168,12 +222,78 @@ const Users = () => {
     fetchUsers();
   }, []);
 
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   const handleUserDelete = async () => {
     await dispatch(deleteUser(selectedUser.id));
     await fetchUsers();
     handleUserMenuClose();
+
+    if (!selectedUser) return;
+    
+    setIsSubmitting(true);
+    try {
+      await dispatch(deleteUser(selectedUser.id));
+      await fetchUsers();
+      showSnackbar('Événement supprimé avec succès', 'success');
+    } catch (error) {
+      showSnackbar(error.message || 'Erreur lors de la suppression', 'error');
+    } finally {
+      setIsSubmitting(false);
+      setDeleteConfirmOpen(false);
+      handleUserMenuClose();
+    }
   }
 
+    const handleCreateUser = async () => {
+      if (!formData.nom.trim()) {
+        showSnackbar('Le nom de la catégorie est requis', 'warning');
+        return;
+      }
+  
+      setIsSubmitting(true);
+      try {
+        await dispatch(createUser(formData));
+        setFormData({ nom: '',
+          email: '',
+          telephone: null,
+          role: 'user' });
+
+        setOpenDialog(false);
+        await fetchUsers();
+        showSnackbar('Utilisateur créé avec succès', 'success');
+      } catch (error) {
+        showSnackbar(error.message || 'Erreur lors de la création', 'error');
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    const handleUpdateUser = async () => {
+        if (!editFormData.nom.trim()) {
+          showSnackbar('Le nom de l\'utilisateur est requis', 'warning');
+          return;
+        }
+        
+        setIsSubmitting(true);
+        try {
+          await dispatch(updateUser(selectedUser.id, editFormData));
+          setEditFormData({ nom: '',
+            email: '',
+            telephone: null,
+            role: 'user' });
+          setOpenEditDialog(false);
+          await fetchUsers();
+          showSnackbar('Utilisateur mis à jour avec succès', 'success');
+        } catch (error) {
+          showSnackbar(error.message || 'Erreur lors de la mise à jour', 'error');
+        } finally {
+          setIsSubmitting(false);
+        }
+      };
+    
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
@@ -356,16 +476,66 @@ const Users = () => {
           sx: { borderRadius: '12px', minWidth: 200 }
         }}
       >
-        <MenuItem onClick={() => handleUserDelete()} sx={{ color: 'error.main' }}>
+        <MenuItem onClick={handleEditUser} sx={{ color: 'primary.main' }}>
+          <Edit sx={{ mr: 2 }} />
+          Modifier
+        </MenuItem>
+        <MenuItem onClick={() => setDeleteConfirmOpen(true)} sx={{ color: 'error.main' }}>
           <Delete sx={{ mr: 2 }} />
           Supprimer
         </MenuItem>
       </Menu>
+    
+    <Snackbar
+      open={snackbar.open}
+      autoHideDuration={6000}
+      onClose={handleCloseSnackbar}
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+    >
+      <Alert
+        onClose={handleCloseSnackbar} 
+        severity={snackbar.severity}
+        sx={{ width: '100%' }}
+      >
+        {snackbar.message}
+      </Alert>
+    </Snackbar>
+    {/* Dialogue de confirmation de suppression */}
+    <Dialog
+      open={deleteConfirmOpen}
+      onClose={() => setDeleteConfirmOpen(false)}
+      maxWidth="xs"
+      PaperProps={{
+        sx: { borderRadius: '16px' }
+      }}
+    >
+      <DialogTitle sx={{ fontWeight: 700 }}>
+        Confirmer la suppression
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Êtes-vous sûr de vouloir supprimer la catégorie "{selectedUser?.nom}" ?
+          Cette action est irréversible.
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setDeleteConfirmOpen(false)}>Annuler</Button>
+        <Button 
+          onClick={handleUserDelete} 
+          color="error"
+          variant="contained"
+          disabled={isSubmitting}
+          startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
+        >
+          {isSubmitting ? 'Suppression...' : 'Confirmer'}
+        </Button>
+      </DialogActions>
+    </Dialog>
 
     {/* Add User Dialog */}
     <Dialog
         open={openDialog}
-        onClose={() => setOpenDialog(false)}
+        onClose={() => !isSubmitting && setOpenDialog(false)}
         maxWidth="sm"
         fullWidth
         PaperProps={{
@@ -375,12 +545,16 @@ const Users = () => {
         <DialogTitle>Ajouter un nouvel utilisateur</DialogTitle>
         <DialogContent>
             <Box sx={{ pt: 2 }}>
-                <Grid container spacing={2}>
+                <Grid container spacing={2} sx={{ display: "flex", flexDirection: "column" }}>
                     <Grid item xs={12} sm={6}>
                     <TextField
                         label="Nom complet"
                         fullWidth
                         variant="outlined"
+                        value={formData.nom}
+                        onChange={(e) => handleFormChange('nom', e.target.value)}
+                        disabled={isSubmitting}
+                        required
                     />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -389,6 +563,10 @@ const Users = () => {
                         fullWidth
                         variant="outlined"
                         type="email"
+                        value={formData.email}
+                        onChange={(e) => handleFormChange('email', e.target.value)}
+                        disabled={isSubmitting}
+                        required
                     />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -396,12 +574,21 @@ const Users = () => {
                         label="Téléphone"
                         fullWidth
                         variant="outlined"
+                        value={formData.telephone}
+                        onChange={(e) => handleFormChange('telephone', e.target.value)}
+                        disabled={isSubmitting}
+                        required
                     />
                     </Grid>
                     <Grid item xs={12} sm={6}>
                         <FormControl fullWidth>
                             <InputLabel>Rôle</InputLabel>
-                            <Select label="Rôle">
+                            <Select label="Rôle"
+                              value={formData.role}
+                              onChange={(e) => handleFormChange('role', e.target.value)}
+                              disabled={isSubmitting}
+                              required
+                            >
                             <MenuItem value="user">Utilisateur</MenuItem>
                             <MenuItem value="organizer">Organisateur</MenuItem>
                             <MenuItem value="admin">Administrateur</MenuItem>
@@ -411,8 +598,103 @@ const Users = () => {
                 </Grid>
             </Box>
         </DialogContent>
+        <DialogActions sx={{ 
+          px: 3, 
+          py: 2,
+          borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+        }}>
+          <Button 
+            onClick={() => setOpenDialog(false)} 
+            disabled={isSubmitting}
+            sx={{ fontSize: { xs: "11px", md: "14px"} }}
+          >
+            Annuler
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleCreateUser}
+            disabled={isSubmitting || !formData.nom.trim()}
+            startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
+            sx={{ ml: 1, fontSize: { xs: "11px", md: "14px"} }}
+          >
+            {isSubmitting ? 'Création...' : 'Créer l\'utilisateur'}
+          </Button>
+        </DialogActions>
     </Dialog>
 
+    {/* Edit User Dialog */}
+    <Dialog
+      open={openEditDialog}
+      onClose={() => setOpenEditDialog(false)}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: '16px' }
+      }}
+    >
+      <DialogTitle>
+        <Typography sx={{ fontWeight: 700 }}>
+          Modifier l'utilisateur
+        </Typography>
+      </DialogTitle>
+      <DialogContent>
+        <Box sx={{ pt: 2 }}>
+          <Grid container spacing={2} sx={{ display: "flex", flexDirection: "column" }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                  label="Nom complet"
+                  fullWidth
+                  variant="outlined"
+                  value={editFormData.nom}
+                  onChange={(e) => handleEditFormChange('nom', e.target.value)}
+                  required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                  label="Email"
+                  fullWidth
+                  variant="outlined"
+                  type="email"
+                  value={editFormData.email}
+                  onChange={(e) => handleEditFormChange('email', e.target.value)}
+                  required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+            <TextField
+                label="Téléphone"
+                fullWidth
+                variant="outlined"
+                value={editFormData.telephone}
+                onChange={(e) => handleEditFormChange('telephone', e.target.value)}
+                required
+            />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                    <InputLabel>Rôle</InputLabel>
+                    <Select label="Rôle"
+                      value={editFormData.role}
+                      onChange={(e) => handleEditFormChange('role', e.target.value)}
+                      required
+                    >
+                    <MenuItem value="user">Utilisateur</MenuItem>
+                    <MenuItem value="organizer">Organisateur</MenuItem>
+                    <MenuItem value="admin">Administrateur</MenuItem>
+                    </Select>
+                </FormControl>
+            </Grid>
+        </Grid>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => { setOpenEditDialog(false); setSelectedUser(null); }}>Annuler</Button>
+        <Button variant="contained" onClick={handleUpdateUser}>
+          Mettre à jour
+        </Button>
+      </DialogActions>
+    </Dialog>
     <Footer />
     </Box>
   );

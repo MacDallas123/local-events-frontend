@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import axios from '../api/axios';
 import { checkAndRefreshTokenIfNeeded } from './authReducer';
 
@@ -6,8 +6,6 @@ const initialState = {
     loading: false,
     error: null
 };
-
-const token = localStorage.getItem("token");
 
 /* export const getAdminDashboard = createAsyncThunk('/dashboard/global', async ({ dispatch }) => {
 
@@ -80,6 +78,8 @@ export const getDashboard = (userType) => async (dispatch) =>{
     try {
         await dispatch(checkAndRefreshTokenIfNeeded());
 
+        console.log("ROUTES", finalRoutes);
+        const token = localStorage.getItem("token");
         for(let i = 0; i < finalRoutes.length; i++)
         {
             let route = finalRoutes[i];
@@ -93,7 +93,7 @@ export const getDashboard = (userType) => async (dispatch) =>{
     } catch (error) {
         dispatch(getEventFailure(error.response?.data?.message || error.message));
         console.log("RESPONSE ERROR", error);
-        return null;
+        return [];
     }
 }
 

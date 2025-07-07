@@ -15,6 +15,7 @@ export default function Login() {
   const dispatch = useDispatch();
   const error = useSelector((state) => state.auth.error);
   const loading = useSelector((state) => state.auth.loading);
+  const navigate = useNavigate();
   // const target = useSelector((state) => state.auth.target);
   // const navigate = useNavigate();
 
@@ -25,9 +26,10 @@ export default function Login() {
 
   const handleShowPassword = () => setShowPassword((show) => !show);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(login(values));
+    const response = await dispatch(login(values));
+    if(response.status == 200) navigate('/admin/dashboard'); 
   };
 
   return (

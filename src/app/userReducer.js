@@ -4,23 +4,37 @@ import { checkAndRefreshTokenIfNeeded } from './authReducer';
 
 const initialState = {
     loading: false,
-    datas: null,
     error: null,
     token: null
 };
+
+const token = localStorage.getItem("token");
 
 export const userSlice = createSlice({
     name: "user",
     initialState,
     reducers: {
+        // create User
+        createUserRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+        createUserSuccess: (state) => {
+            state.loading = false;
+            state.error = null;
+        },
+        createUserFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
         // Get any User
         getUserRequest: (state) => {
             state.loading = true;
             state.error = null;
         },
-        getUserSuccess: (state, action) => {
+        getUserSuccess: (state) => {
             state.loading = false;
-            state.datas = action.payload;
             state.error = null;
         },
         getUserFailure: (state, action) => {
@@ -33,9 +47,8 @@ export const userSlice = createSlice({
             state.loading = true;
             state.error = null;
         },
-        meSuccess: (state, action) => {
+        meSuccess: (state) => {
             state.loading = false;
-            state.datas = action.payload;
             state.error = null;
         },
         meFailure: (state, action) => {
@@ -48,9 +61,8 @@ export const userSlice = createSlice({
             state.loading = true;
             state.error = null;
         },
-        getAllUsersSuccess: (state, action) => {
+        getAllUsersSuccess: (state) => {
             state.loading = false;
-            state.datas = action.payload;
             state.error = null;
         },
         getAllUsersFailure: (state, action) => {
@@ -63,9 +75,8 @@ export const userSlice = createSlice({
             state.loading = true;
             state.error = null;
         },
-        updateUsersSuccess: (state, action) => {
+        updateUsersSuccess: (state) => {
             state.loading = false;
-            state.datas = action.payload;
             state.error = null;
         },
         updateUserFailure: (state, action) => {
@@ -78,9 +89,8 @@ export const userSlice = createSlice({
             state.loading = true;
             state.error = null;
         },
-        deleteUserSuccess: (state, action) => {
+        deleteUserSuccess: (state) => {
             state.loading = false;
-            state.datas = action.payload;
             state.error = null;
         },
         deleteUserFailure: (state, action) => {
@@ -91,6 +101,9 @@ export const userSlice = createSlice({
 });
 
 export const {
+    createUserRequest,
+    createUserSuccess,
+    createUserFailure,
     getUserRequest,
     getUserSuccess,
     getUserFailure,
@@ -191,6 +204,24 @@ export const deleteUser = (id) => async (dispatch) => {
     } catch (error) {
         dispatch(deleteUserFailure(error.response?.data?.message || error.message));
         return null;
+    }
+};
+
+export const createUser = (userData) => async (dispatch) => {
+    dispatch(createUserRequest());
+    try {
+        await dispatch(checkAndRefreshTokenIfNeeded());
+        const response = await axios.post('/users/', { ...userData, password: "12345678" }, { headers: { 
+            "Content-Type": "application/json",
+            "Authorization":  `Bearer ${token}`
+        }});
+        dispatch(createUserSuccess());
+        
+        return { status: response.status, datas: response?.data }
+    } catch (error) {
+        console.log("ERROR", error);
+        dispatch(createUserFailure(error.response?.data?.message || error.message));
+        return { status: 500 }
     }
 };
 

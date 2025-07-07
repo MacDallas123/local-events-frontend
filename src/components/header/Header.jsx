@@ -19,9 +19,10 @@ import {
   KeyboardArrowDown,
   Notifications,
   Search,
-  Home
+  Home,
+  Public
 } from "@mui/icons-material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { logout } from "../../app/authReducer";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +32,7 @@ const Header = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(null);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -40,9 +42,12 @@ const Header = () => {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
-    handleMenuClose();
+  const handleLogout = async () => {
+    const response = await dispatch(logout());
+    if(response.status == 200) {
+      navigate('/');
+      handleMenuClose();
+    }
   }
 
   const handleGoToAdmin = () => {
@@ -50,6 +55,11 @@ const Header = () => {
 
     handleMenuClose();
   }
+
+  useEffect(() => {
+    const authUser = JSON.parse(localStorage.getItem("user"));
+    setCurrentUser(authUser);
+  }, []);
 
   return (
     <AppBar 
@@ -137,7 +147,7 @@ const Header = () => {
             }}
           >
             Découvrir
-          </Button> */}
+          </Button> 
           <Button
             color="inherit"
             sx={{
@@ -153,7 +163,7 @@ const Header = () => {
             }}
           >
             Mes événements
-          </Button>
+          </Button>*/}
         </Box>
 
         {/* Action Buttons */}
@@ -168,9 +178,23 @@ const Header = () => {
               },
             }}
 
-            href="/"
+            onClick={() => { navigate('/'); }}
           >
             <Home />
+          </IconButton>
+          
+          <IconButton
+            sx={{
+              color: 'white',
+              backgroundColor: alpha(theme.palette.common.white, 0.1),
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.common.white, 0.2),
+              },
+            }}
+
+            onClick={() => { navigate('/explore'); }}
+          >
+            <Public />
           </IconButton>
 
           {/* Notifications */}
@@ -220,62 +244,101 @@ const Header = () => {
           </Button> */}
 
           {/* User Menu */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Button
-              color="inherit"
-              onClick={handleMenuOpen}
-              endIcon={<KeyboardArrowDown />}
-              sx={{
-                color: 'white',
-                textTransform: 'none',
-                fontWeight: 500,
-                px: 2,
-                py: 1,
-                borderRadius: '10px',
-                '&:hover': {
-                  backgroundColor: alpha(theme.palette.common.white, 0.1),
-                },
-              }}
-            >
-              <Avatar 
-                sx={{ 
-                  width: 28, 
-                  height: 28, 
-                  mr: 1,
-                  backgroundColor: alpha(theme.palette.secondary.main, 0.3),
-                  fontSize: '0.8rem',
+          {currentUser != null ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Button
+                color="inherit"
+                onClick={handleMenuOpen}
+                endIcon={<KeyboardArrowDown />}
+                sx={{
+                  color: 'white',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  px: 2,
+                  py: 1,
+                  borderRadius: '10px',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.common.white, 0.1),
+                  },
                 }}
               >
-                <Person fontSize="small" />
-              </Avatar>
-              <Typography sx={{ display: { xs: 'none', md: 'flex' } }}>
-                Mon compte
-              </Typography>
-            </Button>
-            
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-              PaperProps={{
-                sx: {
-                  mt: 1,
-                  borderRadius: '12px',
-                  minWidth: 200,
-                  boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.2)}`,
-                },
-              }}
-            >
-              <MenuItem onClick={handleGoToAdmin} sx={{ color: 'blue'}}>
-                Tableau de bord
-              </MenuItem>
-              <MenuItem onClick={handleMenuClose}>Mon profil</MenuItem>
-              <MenuItem onClick={handleMenuClose}>Mes événements</MenuItem>
-              <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
-                Déconnexion
-              </MenuItem>
-            </Menu>
-          </Box>
+                <Avatar 
+                  sx={{ 
+                    width: 28, 
+                    height: 28, 
+                    mr: 1,
+                    backgroundColor: alpha(theme.palette.secondary.main, 0.3),
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  <Person fontSize="small" />
+                </Avatar>
+                <Typography sx={{ display: { xs: 'none', md: 'flex' } }}>
+                  Mon compte
+                </Typography>
+              </Button>
+              
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                PaperProps={{
+                  sx: {
+                    mt: 1,
+                    borderRadius: '12px',
+                    minWidth: 200,
+                    boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.2)}`,
+                  },
+                }}
+              >
+                <MenuItem onClick={handleGoToAdmin} sx={{ color: 'blue'}}>
+                  Tableau de bord
+                </MenuItem>
+                <MenuItem onClick={handleMenuClose}>Mon profil</MenuItem>
+                <MenuItem onClick={handleMenuClose}>Mes événements</MenuItem>
+                <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+                  Déconnexion
+                </MenuItem>
+              </Menu>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button 
+                color="inherit"
+                onClick={() => navigate('/auth/login')}
+                sx={{
+                  color: 'white',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  px: 2,
+                  py: 1,
+                  borderRadius: '10px',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.common.white, 0.1),
+                  },
+                }}
+              >
+                Connexion
+              </Button>
+              <Button 
+                variant="contained"
+                onClick={() => navigate('/auth/register')}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  px: 2,
+                  py: 1,
+                  borderRadius: '10px',
+                  backgroundColor: theme.palette.secondary.main,
+                  '&:hover': {
+                    backgroundColor: theme.palette.secondary.dark,
+                  },
+                }}
+              >
+                Inscription
+              </Button>
+            </Box>
+          )}
         </Box>
 
 

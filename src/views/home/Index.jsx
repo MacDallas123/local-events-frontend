@@ -74,16 +74,10 @@ const Index = () => {
     const theme = useTheme();
     const navigate = useNavigate();
 
-    const authInfos = useSelector((state) => state.auth);
-
-    useEffect(() => {
-        console.log("AUTH INFOS", authInfos);
-    }, [authInfos]);
-    
     const handleSelectEvent = (e, type) => {
         e.preventDefault();
 
-        navigate("/events", {
+        navigate("/explore", {
             state: {
                 eventType: type,
             }

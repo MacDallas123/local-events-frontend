@@ -1,10 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 import axios from '../api/axios';
 import { checkAndRefreshTokenIfNeeded } from './authReducer';
+import { getUser } from "./userReducer";
+import { getCategory } from "./categoryReducer";
 
 const initialState = {
     loading: false,
-    datas: null,
     error: null,
     token: null
 };
@@ -13,14 +14,13 @@ export const eventSlice = createSlice({
     name: "event",
     initialState,
     reducers: {
-        // Get any User
+        // Get any Event
         getEventRequest: (state) => {
             state.loading = true;
             state.error = null;
         },
-        getEventSuccess: (state, action) => {
+        getEventSuccess: (state) => {
             state.loading = false;
-            state.datas = action.payload;
             state.error = null;
         },
         getEventFailure: (state, action) => {
@@ -33,9 +33,8 @@ export const eventSlice = createSlice({
             state.loading = true;
             state.error = null;
         },
-        getUserEventsSuccess: (state, action) => {
+        getUserEventsSuccess: (state) => {
             state.loading = false;
-            state.datas = action.payload;
             state.error = null;
         },
         getUserEventsFailure: (state, action) => {
@@ -43,14 +42,13 @@ export const eventSlice = createSlice({
             state.error = action.payload;
         },
 
-        // Get All Users
+        // Get All events
         getAllEventsRequest: (state) => {
             state.loading = true;
             state.error = null;
         },
-        getAllEventsSuccess: (state, action) => {
+        getAllEventsSuccess: (state) => {
             state.loading = false;
-            state.datas = action.payload;
             state.error = null;
         },
         getAllEventsFailure: (state, action) => {
@@ -58,14 +56,13 @@ export const eventSlice = createSlice({
             state.error = action.payload;
         },
 
-        // Update user
+        // Update event
         updateEventRequest: (state) => {
             state.loading = true;
             state.error = null;
         },
-        updateEventSuccess: (state, action) => {
+        updateEventSuccess: (state) => {
             state.loading = false;
-            state.datas = action.payload;
             state.error = null;
         },
         updateEventFailure: (state, action) => {
@@ -73,17 +70,30 @@ export const eventSlice = createSlice({
             state.error = action.payload;
         },
 
-         // Delete user
+         // Delete event
         deleteEventRequest: (state) => {
             state.loading = true;
             state.error = null;
         },
-        deleteEventSuccess: (state, action) => {
+        deleteEventSuccess: (state) => {
             state.loading = false;
-            state.datas = action.payload;
             state.error = null;
         },
         deleteEventFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // Validate Event user
+        validateEventRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+        validateEventSuccess: (state) => {
+            state.loading = false;
+            state.error = null;
+        },
+        validateEventFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
         },
@@ -106,6 +116,9 @@ export const {
     deleteEventRequest,
     deleteEventSuccess,
     deleteEventFailure,
+    validateEventRequest,
+    validateEventSuccess,
+    validateEventFailure
 } = eventSlice.actions;
 
 
@@ -115,7 +128,7 @@ export const getEvent = (id) => async (dispatch) => {
     try {
         await dispatch(checkAndRefreshTokenIfNeeded());
         const token = localStorage.getItem("token");
-        const response = await axios.get(`/event/${id}`, {
+        const response = await axios.get(`/events/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         dispatch(getEventSuccess(response.data));
@@ -132,10 +145,10 @@ export const getUserEvents = () => async (dispatch) => {
     try {
         await dispatch(checkAndRefreshTokenIfNeeded());
         const token = localStorage.getItem("token");
-        const response = await axios.get('/events/', {
+        const response = await axios.get('/events', {
             headers: { Authorization: `Bearer ${token}` }
         });
-        dispatch(getUserEventsSuccess(response.data));
+        dispatch(getUserEventsSuccess());
         return response?.data;
     } catch (error) {
         dispatch(getUserEventsFailure(error.response?.data?.message || error.message));
@@ -149,11 +162,51 @@ export const getAllEvents = () => async (dispatch) => {
     try {
         await dispatch(checkAndRefreshTokenIfNeeded());
         const token = localStorage.getItem("token");
-        const response = await axios.get('/events/', {
+        const response = await axios.get('/events', {
             headers: { Authorization: `Bearer ${token}` }
         });
-        dispatch(getAllEventsSuccess(response.data));
-        return response?.data;
+        
+        const respDatas = response?.data;
+        
+        // Utilisation de Promise.all pour attendre toutes les Promises
+        const eventsWithDetails = await Promise.all(
+            respDatas.events.map(async (event) => {
+                try {
+                    const userResponse = await dispatch(getUser(event.organisateur_id));
+                    const categoryResponse = await dispatch(getCategory(event.categorie_id));
+
+                    return {
+                        ...event,
+                        organisateur: {
+                            nom: userResponse?.nom || 'N/A',
+                            email: userResponse?.email || 'N/A'
+                        },
+                        categorie: {
+                            nom: categoryResponse?.nom || 'N/A'
+                        }
+                    };
+                } catch (error) {
+                    console.error("Error fetching details for event:", event.id, error);
+                    return {
+                        ...event,
+                        organisateur: {
+                            nom: 'N/A',
+                            email: 'N/A'
+                        },
+                        categorie: {
+                            nom: 'N/A'
+                        }
+                    };
+                }
+            })
+        );
+
+        console.log("EVENTS WITH DETAILS", eventsWithDetails);
+        dispatch(getAllEventsSuccess());
+        return { 
+            ...respDatas, 
+            events: eventsWithDetails 
+        };
     } catch (error) {
         dispatch(getAllEventsFailure(error.response?.data?.message || error.message));
         return null;
@@ -169,9 +222,10 @@ export const updateEvent = (id, userData) => async (dispatch) => {
         const response = await axios.put(`/events/${id}`, userData, {
             headers: { Authorization: `Bearer ${token}` }
         });
-        dispatch(updateEventSuccess(response.data));
+        dispatch(updateEventSuccess());
         return response?.data;
     } catch (error) {
+        console.log("RESPONSE ERROR", error);
         dispatch(updateEventFailure(error.response?.data?.message || error.message));
         return null;
     }
@@ -186,10 +240,48 @@ export const deleteEvent = (id) => async (dispatch) => {
         const response = await axios.delete(`/events/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
-        dispatch(deleteEventSuccess(response.data));
+        dispatch(deleteEventSuccess());
         return response?.data;
     } catch (error) {
         dispatch(deleteEventFailure(error.response?.data?.message || error.message));
+        return null;
+    }
+};
+
+// Validate event by id
+export const validateEvent = (id) => async (dispatch) => {
+    dispatch(validateEventRequest());
+    try {
+        await dispatch(checkAndRefreshTokenIfNeeded());
+        const token = localStorage.getItem("token");
+        const response = await axios.put(`/events/${id}/valider`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        dispatch(validateEventSuccess());
+        return response?.data;
+    } catch (error) {
+        dispatch(validateEventFailure(error.response?.data?.message || error.message));
+        return null;
+    }
+};
+
+export const createEvent = (eventData) => async (dispatch) => {
+    dispatch(updateEventRequest());
+    try {
+        await dispatch(checkAndRefreshTokenIfNeeded());
+        const token = localStorage.getItem("token");
+        console.log("FORM DATA", eventData);
+        const response = await axios.post('/events', eventData, {
+            headers: { 
+                "Content-Type" : "multipart/form-data",
+                Authorization: `Bearer ${token}` }
+        });
+        dispatch(updateEventSuccess());
+        console.log("RESPONSE", response);
+        return response?.data;
+    } catch (error) {
+        console.error("RESPONSE ERROR", error);
+        dispatch(updateEventFailure(error.response?.data?.message || error.message));
         return null;
     }
 };

@@ -4,6 +4,7 @@ import { userReducer } from './userReducer';
 import { eventReducer } from './eventReducer';
 import { dashboardReducer } from './dashboardReducer';
 import { categoryReducer } from './categoryReducer';
+import { registrationReducer } from './registrationReducer';
 
 
 export default configureStore({
@@ -12,6 +13,7 @@ export default configureStore({
         user: userReducer,
         event: eventReducer,
         dashboard: dashboardReducer,
-        category: categoryReducer
+        category: categoryReducer,
+        registration: registrationReducer
     }
 });

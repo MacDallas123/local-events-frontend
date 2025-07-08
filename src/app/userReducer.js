@@ -84,7 +84,7 @@ export const userSlice = createSlice({
             state.error = action.payload;
         },
 
-         // Delete user
+        // Delete user
         deleteUserRequest: (state) => {
             state.loading = true;
             state.error = null;
@@ -94,6 +94,20 @@ export const userSlice = createSlice({
             state.error = null;
         },
         deleteUserFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // change user password
+        changeUserPasswordRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+        changeUserPasswordSuccess: (state) => {
+            state.loading = false;
+            state.error = null;
+        },
+        changeUserPasswordFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
         },
@@ -118,7 +132,10 @@ export const {
     updateUserFailure,
     deleteUserRequest,
     deleteUserSuccess,
-    deleteUserFailure
+    deleteUserFailure,
+    changeUserPasswordRequest,
+    changeUserPasswordSuccess,
+    changeUserPasswordFailure
 } = userSlice.actions;
 
 
@@ -186,6 +203,28 @@ export const updateUser = (id, userData) => async (dispatch) => {
         return response?.data;
     } catch (error) {
         dispatch(updateUserFailure(error.response?.data?.message || error.message));
+        return null;
+    }
+};
+
+// Change password
+export const changePassword = (userData) => async (dispatch) => {
+    dispatch(changeUserPasswordRequest());
+    try {
+        await dispatch(checkAndRefreshTokenIfNeeded());
+        const token = localStorage.getItem("token");
+        const response = await axios.post('/users/change-password', { 
+            old_password: userData.currentPassword,
+            new_password: userData.newPassword
+        }, { headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        }});
+        dispatch(changeUserPasswordSuccess());
+        return response?.data;
+    } catch (error) {
+        console.log("ERROR", error);
+        dispatch(changeUserPasswordFailure(error.response?.data?.message || error.message));
         return null;
     }
 };

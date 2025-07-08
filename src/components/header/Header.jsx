@@ -45,13 +45,20 @@ const Header = () => {
   const handleLogout = async () => {
     const response = await dispatch(logout());
     if(response.status == 200) {
-      navigate('/');
+      localStorage.clear();
+      location.href= "/";
       handleMenuClose();
     }
   }
 
   const handleGoToAdmin = () => {
     navigate("/admin");
+
+    handleMenuClose();
+  }
+
+  const handleGoToProfile = () => {
+    navigate("/profile");
 
     handleMenuClose();
   }
@@ -182,20 +189,22 @@ const Header = () => {
           >
             <Home />
           </IconButton>
-          
-          <IconButton
-            sx={{
-              color: 'white',
-              backgroundColor: alpha(theme.palette.common.white, 0.1),
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.common.white, 0.2),
-              },
-            }}
 
-            onClick={() => { navigate('/explore'); }}
-          >
-            <Public />
-          </IconButton>
+          {currentUser != null ? (
+            <IconButton
+              sx={{
+                color: 'white',
+                backgroundColor: alpha(theme.palette.common.white, 0.1),
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.common.white, 0.2),
+                },
+              }}
+
+              onClick={() => { navigate('/explore'); }}
+            >
+              <Public />
+            </IconButton>
+          ) : null }
 
           {/* Notifications */}
           {/* <IconButton
@@ -294,8 +303,8 @@ const Header = () => {
                 <MenuItem onClick={handleGoToAdmin} sx={{ color: 'blue'}}>
                   Tableau de bord
                 </MenuItem>
-                <MenuItem onClick={handleMenuClose}>Mon profil</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Mes événements</MenuItem>
+                <MenuItem onClick={handleGoToProfile}>Mon profil</MenuItem>
+                {/* <MenuItem onClick={handleMenuClose}>Mes événements</MenuItem> */}
                 <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
                   Déconnexion
                 </MenuItem>

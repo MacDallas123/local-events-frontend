@@ -345,8 +345,7 @@ const EventsManagement = () => {
     if (!selectedEvent) return;
     
     let date = new Date(selectedEvent.date);
-    let formattedDate = `${date.getFullYear()}-${date.getMonth()}-${date.getDay()}T00:00`;
-    console.log("SELECT EVENT", selectedEvent, "DATE", formattedDate);
+    let formattedDate = date.toISOString().slice(0, 16);
     setEditFormData({
       titre: selectedEvent.titre,
       description: selectedEvent.description || '',

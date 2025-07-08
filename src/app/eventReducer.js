@@ -213,6 +213,63 @@ export const getAllEvents = () => async (dispatch) => {
     }
 };
 
+// Get puplic events
+export const getPublicEvents = () => async (dispatch) => {
+    dispatch(getAllEventsRequest());
+    try {
+        await dispatch(checkAndRefreshTokenIfNeeded());
+        const token = localStorage.getItem("token");
+        const response = await axios.get('/events/public', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const respDatas = response?.data;
+        
+        // Utilisation de Promise.all pour attendre toutes les Promises
+        const eventsWithDetails = await Promise.all(
+            respDatas.events.map(async (event) => {
+                try {
+                    //const userResponse = await dispatch(getUser(event.organisateur?.id));
+                    const categoryResponse = await dispatch(getCategory(event.categorie_id));
+
+                    return {
+                        ...event,
+                        organisateur: {
+                            nom: event.organisateur?.nom || 'N/A',
+                            email: event.organisateur?.email || 'N/A'
+                        },
+                        categorie: {
+                            nom: categoryResponse?.nom || 'N/A'
+                        }
+                    };
+                } catch (error) {
+                    console.error("Error fetching details for event:", event.id, error);
+                    return {
+                        ...event,
+                        organisateur: {
+                            nom: 'N/A',
+                            email: 'N/A'
+                        },
+                        categorie: {
+                            nom: 'N/A'
+                        }
+                    };
+                }
+            })
+        );
+
+        console.log("EVENTS WITH DETAILS", eventsWithDetails);
+        dispatch(getAllEventsSuccess());
+        return { 
+            ...respDatas, 
+            events: eventsWithDetails 
+        };
+    } catch (error) {
+        dispatch(getAllEventsFailure(error.response?.data?.message || error.message));
+        return null;
+    }
+};
+
 // Update event by id
 export const updateEvent = (id, userData) => async (dispatch) => {
     dispatch(updateEventRequest());
@@ -254,12 +311,16 @@ export const validateEvent = (id) => async (dispatch) => {
     try {
         await dispatch(checkAndRefreshTokenIfNeeded());
         const token = localStorage.getItem("token");
-        const response = await axios.put(`/events/${id}/valider`, {
-            headers: { Authorization: `Bearer ${token}` }
+        const response = await axios.patch(`/events/${id}/valider`, {est_valide: 1}, {
+            headers: { 
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            }
         });
         dispatch(validateEventSuccess());
         return response?.data;
     } catch (error) {
+        console.log("RESPONSE ERROR", error);
         dispatch(validateEventFailure(error.response?.data?.message || error.message));
         return null;
     }

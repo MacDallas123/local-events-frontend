@@ -48,28 +48,33 @@ import { useDispatch } from 'react-redux';
 import AdminDashboard from '../../components/dashboard/AdminDashboard';
 import OrganizerDashboard from '../../components/dashboard/OrganizerDashboard';
 import UserDashboard from '../../components/dashboard/UserDashboard';
+import { unregisterFromEvent } from '../../app/registrationReducer';
 
 const Dashboard = () => {
     const theme = useTheme();
     const dispatch = useDispatch();
     const [dashboardDatas, setDasboardDatas] = useState([]);
-    const [currentUserRole, setCurrentUserRole] = useState("role");
+    const [currentUserRole, setCurrentUserRole] = useState("user");
 
-  useEffect(() => {
     const fetchAdminDashboard = async () => {
-        const response = await dispatch(getDashboard("admin"));
+        const authUser = JSON.parse(localStorage.getItem("user"));
+        const response = await dispatch(getDashboard(authUser?.role || "user"));
         console.log("ADMIN DASHBOARD DATAS", response);
         setDasboardDatas(response);
         // const response2 = await dispatch(getDashboard("organizer"));
         // console.log("Organizer DASHBOARD DATAS", response2);
 
-        const authUser = JSON.parse(localStorage.getItem("user"));
         setCurrentUserRole(authUser?.role);
     }
+    useEffect(() => {
+        fetchAdminDashboard();
+    }, []);
 
-    fetchAdminDashboard();
-  }, []);
-
+    const handleUnsubscribeToEvent = async (eventId) => {
+        const response = await dispatch(unregisterFromEvent(eventId));
+        console.log("UREGISTER REPONSE", response);
+        fetchAdminDashboard();
+    }
   return (
     <Box sx={{ p: 3 }}>
         {/* Header */}
@@ -87,7 +92,10 @@ const Dashboard = () => {
         
         {(currentUserRole == "organizer") ? <OrganizerDashboard dashboardDatas={dashboardDatas[0]} /> : null }
         
-        {dashboardDatas?.length > 0 ? <UserDashboard dashboardDatas={dashboardDatas[dashboardDatas?.length - 1]} /> : null}
+        {dashboardDatas?.length > 0 ? 
+            <UserDashboard 
+                dashboardDatas={dashboardDatas[dashboardDatas?.length - 1]} 
+                handleUnsubscribeToEvent={handleUnsubscribeToEvent} /> : null}
         {/* {(currentUserRole == "super_admin" || currentUserRole == "admin" || currentUserRole == "organizer" || currentUserRole == "user") ? <UserDashboard dashboardDatas={dashboardDatas[1]} /> : null } */}
         
         

@@ -12,6 +12,12 @@ import Dashboard from './views/admin/Dashboard';
 import EventsManagement from './views/admin/EventsManagement';
 import Categories from './views/admin/Categories';
 import Explore from './views/Explore';
+import Registrations from './views/admin/Registrations';
+import Profil from './views/home/Profil';
+import ProtectedRoute from './views/auth/ProtectedRoute';
+import IsAdminProtectedRoute from './views/auth/IsAdminProtectedRoute';
+import IsOrganizerProtectedRoute from './views/auth/IsOrganizerProtectedRoute';
+import IsForbidden from './views/auth/IsForbidden';
 
 function App() {
   return (
@@ -25,20 +31,64 @@ function App() {
         </Route>
 
         <Route path="/" element={<Main />}>
-              <Route path="/index" element={<Index />} />
-              <Route path="/explore" element={<Explore />} />
+              <Route path="/index" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/explore" element={
+                <ProtectedRoute>
+                  <Explore />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profil />
+                </ProtectedRoute>
+                } />
 
               <Route path="/" element={<Navigate  to="/index" />} />
         </Route>
 
-        <Route path="/admin" element={<Admin />}>
+        <Route path="/admin" element={
+            <ProtectedRoute>
+              <Admin />
+            </ProtectedRoute>
+          }>
+
           <Route path="/admin/dashboard" element={<Dashboard />} />
-          <Route path="/admin/users" element={<Users />} />
-          <Route path="/admin/events" element={<EventsManagement />} />
-          <Route path="/admin/categories" element={<Categories />} />
+
+          <Route path="/admin/users" element={
+              <IsAdminProtectedRoute>
+                <Users />
+              </IsAdminProtectedRoute>
+            } />
+
+          <Route path="/admin/events" element={
+            <IsOrganizerProtectedRoute>
+              <EventsManagement />
+            </IsOrganizerProtectedRoute>
+            } />
+
+          <Route path="/admin/categories" element={
+            <IsAdminProtectedRoute>
+              <Categories />
+            </IsAdminProtectedRoute>
+            } />
+
+          <Route path="/admin/registrations" element={
+            <IsOrganizerProtectedRoute>
+              <Registrations />
+            </IsOrganizerProtectedRoute>
+          } />
+
           <Route path="/admin" element={<Navigate  to="/admin/dashboard" />} />
         </Route>
-
+        
+        <Route path="/403" element={<IsForbidden />} />
+        
         {/* <Route path="/" element={
           <ProtectedRoute>
             <Index />

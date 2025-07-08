@@ -3,6 +3,7 @@ import { TextField, Button, Box, InputAdornment, IconButton, useTheme, Typograph
 import { Visibility, VisibilityOff, Email, Lock, Person, ErrorOutline, Phone, Numbers } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { clearError, register } from "../../app/authReducer";
+import { useNavigate } from "react-router-dom";
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,6 +13,7 @@ export default function Register() {
   const error = useSelector((state) => state.auth.error);
   const response = useSelector((state) => state.auth);
   const loading = useSelector((state) => state.auth.loading);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
@@ -25,10 +27,11 @@ export default function Register() {
     { label: "Organisateur", value: "organizer" },
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(register(values));
+    const response = await dispatch(register(values));
     console.log("RESPONSE", response);
+    if(response.status == 200 || response.status == 201) navigate('/auth/login'); 
   };
 
   return (
@@ -197,7 +200,7 @@ export default function Register() {
       <Box sx={{ mt: 2, textAlign: "center" }}>
         <Typography variant="body2">
           Déjà inscrit ?{" "}
-          <a href="/auth/login" style={{ color: theme.palette.primary.main, textDecoration: "none", fontWeight: 500 }}>
+          <a onClick={(e) => { e.preventDefault(); navigate("/auth/login"); }} style={{ color: theme.palette.primary.main, textDecoration: "none", fontWeight: 500, cursor: "pointer" }}>
             Se connecter
           </a>
         </Typography>

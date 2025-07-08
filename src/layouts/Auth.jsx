@@ -2,7 +2,7 @@
 import React from "react";
 import { Box, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 
@@ -10,7 +10,8 @@ const backgroundImage =
   "url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80')"; // Image d'événement
 
 const Auth = () => {
-  const theme = useTheme();
+    const theme = useTheme();
+    const navigate = useNavigate();
 
   return (
     <>
@@ -37,8 +38,9 @@ const Auth = () => {
                     position: "relative",
                     zIndex: 2,
                     p: 4,
-                    minWidth: 350,
-                    maxWidth: 400,
+                    m: 4,
+                    minWidth: { xs: "75vw", md: 350 },
+                    maxWidth: { xs: "90vw", md: 400 },
                     borderRadius: 3,
                     background: "rgba(255,255,255,0.95)",
                     boxShadow: `0 8px 32px 0 ${theme.palette.primary.main}33`,
@@ -62,7 +64,12 @@ const Auth = () => {
                         fontWeight: 700,
                         color: theme.palette.primary.main,
                         letterSpacing: 1,
+                        cursor: "pointer",
+                        "&:hover": {
+                            color: "blue"
+                        }
                     }}
+                    onClick={() => { navigate("/"); }}
                     >
                     LocalEvents
                     </Typography>

@@ -114,19 +114,20 @@ export const login = (credentials) => async (dispatch) => {
 export const register = (userData) => async (dispatch) => {
     dispatch(registerRequest());
     try {
-        await dispatch(checkAndRefreshTokenIfNeeded());
         if(userData.password == userData.confirmPassword) {
             const response = await axios.post('/auth/register', { ...userData, "nom": userData.name }, { headers: { 
                 "Content-Type": "application/json"
             }});
             dispatch(registerSuccess());
-            location.href = "/auth/login";
+            return { status: response?.status, datas: response?.data };
         } else {
             dispatch(registerFailure("Les mots de passe ne correspondent pas"));
+            return { status: "400" };
         }
     } catch (error) {
         console.log("ERROR", error);
         dispatch(registerFailure(error.response?.data?.message || error.message));
+        return { status: "500" };
     }
 };
 
@@ -162,7 +163,6 @@ export const logout = () => async (dispatch) => {
             }
         });
         dispatch(logoutSuccess());
-        localStorage.clear();
         console.log("RESPONSE", response);
         return { status: response?.status, datas: response?.data };
     } catch (error) {

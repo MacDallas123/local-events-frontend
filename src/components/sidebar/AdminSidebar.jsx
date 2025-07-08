@@ -31,7 +31,7 @@ import {
   Close,
   AppRegistrationRounded
 } from "@mui/icons-material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const AdminSidebar = () => {
@@ -40,6 +40,7 @@ const AdminSidebar = () => {
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authUser, setAuthUser] = useState(null);
   const [expandedItems, setExpandedItems] = useState({});
 
   const handleDrawerToggle = () => {
@@ -53,6 +54,11 @@ const AdminSidebar = () => {
     }));
   };
 
+  useEffect(() => {
+    const au = JSON.parse(localStorage.getItem("user"));
+    setAuthUser(au);
+  }, []);
+
   const menuItems = [
     {
       id: 'dashboard',
@@ -60,6 +66,7 @@ const AdminSidebar = () => {
       icon: <Dashboard />,
       path: '/admin/dashboard',
       color: theme.palette.primary.main,
+      reservedTo: ["admin", "super_admin", "organizer", "user"]
     },
     {
       id: 'categories',
@@ -67,6 +74,7 @@ const AdminSidebar = () => {
       icon: <Category />,
       path: '/admin/categories',
       color: theme.palette.secondary.main,
+      reservedTo: ["admin", "super_admin"]
       /* subItems: [
         { title: 'Toutes les catégories', path: '/admin/categories' },
         { title: 'Ajouter une catégorie', path: '/admin/categories/create' },
@@ -78,6 +86,7 @@ const AdminSidebar = () => {
       icon: <People />,
       path: '/admin/users',
       color: theme.palette.info.main,
+      reservedTo: ["admin", "super_admin"]
     },
     {
       id: 'events',
@@ -85,6 +94,7 @@ const AdminSidebar = () => {
       icon: <Event />,
       path: '/admin/events',
       color: theme.palette.success.main,
+      reservedTo: ["organizer"]
       /* subItems: [
         { title: 'Tous les événements', path: '/admin/events' },
         { title: 'Événements en attente', path: '/admin/events/pending' },
@@ -93,11 +103,12 @@ const AdminSidebar = () => {
       ] */
     },
     {
-      id: 'events',
+      id: 'registrations',
       title: 'Gestion des Inscriptions',
       icon: <AppRegistrationRounded />,
       path: '/admin/registrations',
       color: theme.palette.error.main,
+      reservedTo: ["organizer"]
       /* subItems: [
         { title: 'Tous les événements', path: '/admin/events' },
         { title: 'Événements en attente', path: '/admin/events/pending' },
@@ -190,7 +201,9 @@ const AdminSidebar = () => {
       {/* Navigation */}
       <Box sx={{ flex: 1, overflow: 'auto' }}>
         <List sx={{ px: 2, py: 1 }}>
-          {menuItems.map((item) => (
+          {menuItems.map((item) => {
+            if(item.reservedTo.includes(authUser?.role)) {
+                return (
             <Box key={item.id} sx={{ mb: 0.5 }}>
               <ListItem disablePadding>
                 <ListItemButton
@@ -298,7 +311,9 @@ const AdminSidebar = () => {
                 </Collapse>
               )}
             </Box>
-          ))}
+          );
+            }
+          })}
         </List>
       </Box>
 

@@ -40,7 +40,7 @@ const AdminDashboard = ({ dashboardDatas }) => {
                     <StatCard
                     title="Événements"
                     value={dashboardDatas?.total_events}
-                    change={8}
+                    change={0}
                     icon={<Event />}
                     color={theme.palette.secondary.main}
                     subtitle="Ce mois-ci"
@@ -50,7 +50,7 @@ const AdminDashboard = ({ dashboardDatas }) => {
                     <StatCard
                     title="Événements en attente"
                     value={dashboardDatas?.total_pending_events}
-                    change={8}
+                    change={0}
                     icon={<LockClock />}
                     color="#296036FF"
                     subtitle="Ce mois-ci"
@@ -60,7 +60,7 @@ const AdminDashboard = ({ dashboardDatas }) => {
                     <StatCard
                     title="Événements privés"
                     value={dashboardDatas?.total_private_events}
-                    change={8}
+                    change={0}
                     icon={<PrivateConnectivity />}
                     color="#B72242FF"
                     subtitle="Ce mois-ci"
@@ -70,7 +70,7 @@ const AdminDashboard = ({ dashboardDatas }) => {
                     <StatCard
                     title="Événements publiques"
                     value={dashboardDatas?.total_public_events}
-                    change={8}
+                    change={0}
                     icon={<Public />}
                     color="#3225EBFF"
                     subtitle="Ce mois-ci"
@@ -80,7 +80,7 @@ const AdminDashboard = ({ dashboardDatas }) => {
                     <StatCard
                     title="Total d'enregistement"
                     value={dashboardDatas?.total_registrations}
-                    change={8}
+                    change={0}
                     icon={<AppRegistration />}
                     color={theme.palette.secondary.main}
                     subtitle="Ce mois-ci"
@@ -90,7 +90,7 @@ const AdminDashboard = ({ dashboardDatas }) => {
                     <StatCard
                     title="Événements validés"
                     value={dashboardDatas?.total_validated_events}
-                    change={8}
+                    change={0}
                     icon={<CheckCircle />}
                     color="#850000FF"
                     subtitle="Ce mois-ci"

@@ -139,7 +139,7 @@ export default function Login() {
         <Box sx={{ mt: 2, textAlign: "center" }}>
             <Typography variant="body2">
                 Pas encore de compte ?{" "}
-                <a href="/auth/register" style={{ color: theme.palette.primary.main, textDecoration: "none", fontWeight: 500 }}>
+                <a onClick={(e) => { e.preventDefault(); navigate("/auth/register"); }} style={{ color: theme.palette.primary.main, textDecoration: "none", fontWeight: 500, cursor: "pointer" }}>
                     Créer un compte
                 </a>
             </Typography>

@@ -50,8 +50,10 @@ import {
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { getAllEvents } from '../app/eventReducer';
+import { getAllEvents, getPublicEvents } from '../app/eventReducer';
 import { getAllCategories } from '../app/categoryReducer';
+import { registerToEvent, unregisterFromEvent } from '../app/registrationReducer';
+import { getDashboard } from '../app/dashboardReducer';
 
 const eventTypes = [
   { 
@@ -96,6 +98,7 @@ const Explore = () => {
 
   // États
   const [events, setEvents] = useState([]);
+  const [subscribedEvents, setSubscribedEvents] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -109,31 +112,39 @@ const Explore = () => {
   const eventTypeFromState = location.state?.eventType;
 
   // Chargement des données
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const [eventsData, categoriesData] = await Promise.all([
-          dispatch(getAllEvents()),
-          dispatch(getAllCategories())
-        ]);
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [eventsData, categoriesData, dashboardDatas] = await Promise.all([
+        dispatch(getPublicEvents()),
+        dispatch(getAllCategories()),
+        dispatch(getDashboard("user"))
+      ]);
 
-        if (eventsData?.events) {
-          setEvents(eventsData.events);
-          setFilteredEvents(eventsData.events);
-        }
-        if (categoriesData?.categories) {
-          setCategories(categoriesData.categories);
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement des données:', error);
-      } finally {
-        setLoading(false);
+      if (eventsData?.events) {
+        setEvents(eventsData.events);
+        setFilteredEvents(eventsData.events);
       }
-    };
+      if (categoriesData?.categories) {
+        setCategories(categoriesData.categories);
+      }
 
+      //console.log("DASHBOARD DATAS", dashboardDatas);
+      if(dashboardDatas.length > 0) setSubscribedEvents(dashboardDatas[0].events);
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadData();
   }, [dispatch]);
+
+  /*useEffect(() => {
+    console.log("SUBS EVENTS", subscribedEvents);
+  }, [subscribedEvents]);*/
 
   // Filtrage et tri des événements
   useEffect(() => {
@@ -207,6 +218,25 @@ const Explore = () => {
   const formatTime = (timeString) => {
     return timeString?.substring(11, 16);
   };
+
+  const handleRegistrationToEvent = async (eventId) => {
+    const registerResponse = await dispatch(registerToEvent(eventId));
+    
+    //console.log("REGISTRATION", registerResponse);
+    /*if(registerResponse != null)
+      alert("INSCRIPTION REUSSIE");*/
+    await loadData();
+    
+  }
+
+  const handleUnsubscribeToEvent = async (eventId) => {
+    const registerResponse = await dispatch(unregisterFromEvent(eventId));
+    
+    /*if(registerResponse != null)
+      alert("DESINSCRIPTION REUSSIE");*/
+    await loadData();
+    
+  }
 
   // Composant EventCard
   const EventCard = ({ event }) => (
@@ -309,15 +339,30 @@ const Explore = () => {
           </Box>
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-          <Button 
-            variant='contained'
-            fullWidth
-            sx={{ 
-              borderRadius: "12px",
-              px: 3}}
-            >
-            S'inscrire
-          </Button>
+          {subscribedEvents.filter((item) => item.event_id === event.id).length > 0 ? (
+            <Button 
+              variant='outlined'
+              color='primary'
+              fullWidth
+              sx={{ 
+                borderRadius: "12px",
+                px: 3}}
+                onClick={() => handleUnsubscribeToEvent(event.id)}
+              >
+              Se désinscrire
+            </Button>
+          ) : (
+            <Button 
+              variant='contained'
+              fullWidth
+              sx={{ 
+                borderRadius: "12px",
+                px: 3}}
+                onClick={() => handleRegistrationToEvent(event.id)}
+              >
+              S'inscrire
+            </Button>
+          )}
         </Box>
       </CardContent>
     </Card>

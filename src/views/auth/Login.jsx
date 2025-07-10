@@ -114,7 +114,7 @@ export default function Login() {
                 sx={{ ml: 0 }}
             />
             <Link
-                href="/forgot-password"
+                href="/auth/forgot-password"
                 underline="hover"
                 sx={{ fontSize: 14, color: theme.palette.primary.main, fontWeight: 500 }}
             >

@@ -538,7 +538,7 @@ const Explore = () => {
         </Box>
 
         {/* Grille des événements */}
-        <Grid container spacing={3}>
+        <Grid container spacing={3} sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
           {filteredEvents.map((event) => (
             <Grid item xs={12} sm={6} md={4} key={event.id}>
               <EventCard event={event} />

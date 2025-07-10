@@ -196,6 +196,7 @@ const Registrations = () => {
   const fetchRegistrations = async () => {
     try {
       const result = await dispatch(getAllRegistrations());
+      console.log("RESULT", result);
       if (result) {
         setRegistrations(result.map(item => ({
           id: item.id,

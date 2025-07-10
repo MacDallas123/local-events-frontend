@@ -94,7 +94,7 @@ const AdminSidebar = () => {
       icon: <Event />,
       path: '/admin/events',
       color: theme.palette.success.main,
-      reservedTo: ["organizer"]
+      reservedTo: ["organizer", "admin", "super_admin"]
       /* subItems: [
         { title: 'Tous les événements', path: '/admin/events' },
         { title: 'Événements en attente', path: '/admin/events/pending' },
@@ -108,7 +108,7 @@ const AdminSidebar = () => {
       icon: <AppRegistrationRounded />,
       path: '/admin/registrations',
       color: theme.palette.error.main,
-      reservedTo: ["organizer"]
+      reservedTo: ["organizer", "admin", "super_admin"]
       /* subItems: [
         { title: 'Tous les événements', path: '/admin/events' },
         { title: 'Événements en attente', path: '/admin/events/pending' },

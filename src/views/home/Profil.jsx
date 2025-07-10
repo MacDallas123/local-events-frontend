@@ -110,7 +110,7 @@ const Profil = () => {
       const response = await dispatch(updateUser(userData.id, editedData));
       if(response == null)
       {
-        setMessage({ type: 'error', text: 'Erreur lors de la mise à jour' });
+        setMessage({ type: 'error', text: response?.data?.message || 'Erreur lors de la mise à jour' });
         return;
       }
 
@@ -126,7 +126,7 @@ const Profil = () => {
       setEditMode(false);
       setMessage({ type: 'success', text: 'Profil mis à jour avec succès' });
     } catch (error) {
-      setMessage({ type: 'error', text: 'Erreur lors de la mise à jour' });
+      setMessage({ type: 'error', text: error.response?.data?.message || 'Erreur lors de la mise à jour' });
     } finally {
       setLoading(false);
     }
@@ -148,7 +148,7 @@ const Profil = () => {
         const response = await dispatch(changePassword(passwordData));
         if(response == null)
         {
-            setMessage({ type: 'error', text: 'Erreur lors de la mise à jour' });
+            setMessage({ type: 'error', text: response?.data?.message || 'Erreur lors de la mise à jour' });
             return;
         }
 
@@ -172,7 +172,7 @@ const Profil = () => {
         const response = await dispatch(deleteUser(userData.id));
         if(response == null)
         {
-            setMessage({ type: 'error', text: 'Erreur lors de la mise à jour' });
+            setMessage({ type: 'error', text: response?.data?.message || 'Erreur lors de la mise suppression de votre compte' });
             return;
         }
         

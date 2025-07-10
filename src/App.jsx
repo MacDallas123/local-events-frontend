@@ -18,6 +18,7 @@ import ProtectedRoute from './views/auth/ProtectedRoute';
 import IsAdminProtectedRoute from './views/auth/IsAdminProtectedRoute';
 import IsOrganizerProtectedRoute from './views/auth/IsOrganizerProtectedRoute';
 import IsForbidden from './views/auth/IsForbidden';
+import ForgotPassword from './views/ForgotPassword';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/auth" element={<Auth />}>
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
               <Route path="/auth" element={<Navigate  to="/auth/login" />} />
         </Route>
 

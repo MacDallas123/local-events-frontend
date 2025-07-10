@@ -160,13 +160,12 @@ export const deleteRegistration = (registrationId) => async (dispatch) => {
 };
 
 // Get all registrations
-export const getAllRegistrations = (isAdmin = false) => async (dispatch) => {
+export const getAllRegistrations = () => async (dispatch) => {
     dispatch(getAllRegistrationsRequest());
     try {
         await dispatch(checkAndRefreshTokenIfNeeded());
         const token = localStorage.getItem("token");
-        const queryParam = isAdmin ? '?all=1' : '';
-        const response = await axios.get(`/registrations/${queryParam}`, {
+        const response = await axios.get(`/registrations`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         dispatch(getAllRegistrationsSuccess(response.data));

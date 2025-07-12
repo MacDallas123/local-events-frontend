@@ -82,7 +82,7 @@ export const {
 // Ajoute la date d'expiration du token (1h)
 function setTokenWithExpiry(token) {
     localStorage.setItem("token", token);
-    const expiry = new Date(Date.now() + 60 * 60 * 1000); // +1h
+    const expiry = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000); // +6j
     localStorage.setItem("token_expiry", expiry.toISOString());
 }
 

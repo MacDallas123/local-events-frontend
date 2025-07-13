@@ -34,9 +34,7 @@ function App() {
 
         <Route path="/" element={<Main />}>
               <Route path="/index" element={
-                <ProtectedRoute>
                   <Index />
-                </ProtectedRoute>
               } />
 
               <Route path="/explore" element={

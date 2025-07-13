@@ -199,15 +199,16 @@ const Registrations = () => {
       console.log("RESULT", result);
       if (result) {
         setRegistrations(result.map(item => ({
-          id: item.id,
+          id: item.registration_id,
           user_id: item.user_id,
           event_id: item.event_id,
           user_name: item.user?.nom || 'Utilisateur inconnu',
           user_email: item.user?.email || '',
-          event_name: item.event?.nom || 'Événement inconnu',
-          event_date: item.event?.date || '',
-          created_at: new Date(item.created_at).toLocaleDateString('fr-FR'),
-          created_at_time: new Date(item.created_at).toLocaleTimeString('fr-FR', { 
+          event_name: item.event_title || 'Événement inconnu',
+          event_date: item.event_date || '',
+          event_place: item.event_lieu || '',
+          created_at: new Date(item.registered_at).toLocaleDateString('fr-FR'),
+          created_at_time: new Date(item.registered_at).toLocaleTimeString('fr-FR', { 
             hour: '2-digit', 
             minute: '2-digit' 
           })

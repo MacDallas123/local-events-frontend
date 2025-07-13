@@ -87,6 +87,7 @@ const EventsManagement = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [events, setEvents] = useState([]);
+  const [authUser, setAuthUser] = useState(null);
   const { loading, error } = useSelector(state => state.event);
   const dispatch = useDispatch();
 
@@ -121,6 +122,13 @@ const EventsManagement = () => {
     image: null,
     est_valide: false
   });
+
+  useEffect(() => {
+    setAuthUser(JSON.parse(localStorage.getItem("user")));
+  }, []);
+  useEffect(() => {
+    console.log("AUTH USER", authUser?.nom);
+  }, [authUser]);
 
   // 3. Fonctions de gestion des formulaires
   const handleFormChange = (field, value) => {
@@ -1037,10 +1045,10 @@ const EventsManagement = () => {
                       </Avatar>
                       <Box>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {event.organisateur.nom || 'N/A'}
+                          {event.organisateur.nom || authUser?.nom }
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                          {event.organisateur.email || ''}
+                          {event.organisateur.email || authUser?.email}
                         </Typography>
                       </Box>
                     </Box>

@@ -202,7 +202,7 @@ const Registrations = () => {
           id: item.registration_id,
           user_id: item.user_id,
           event_id: item.event_id,
-          user_name: item.user?.nom || 'Utilisateur inconnu',
+          user_name: item.user_name || 'Utilisateur inconnu',
           user_email: item.user?.email || '',
           event_name: item.event_title || 'Événement inconnu',
           event_date: item.event_date || '',

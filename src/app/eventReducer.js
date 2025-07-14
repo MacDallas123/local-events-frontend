@@ -1,8 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import axios from '../api/axios';
 import { checkAndRefreshTokenIfNeeded } from './authReducer';
-import { getUser } from "./userReducer";
-import { getCategory } from "./categoryReducer";
 
 const initialState = {
     loading: false,
@@ -169,7 +167,7 @@ export const getAllEvents = () => async (dispatch) => {
         const respDatas = response?.data;
         
         // Utilisation de Promise.all pour attendre toutes les Promises
-        const eventsWithDetails = await Promise.all(
+        /*const eventsWithDetails = await Promise.all(
             respDatas.events.map(async (event) => {
                 try {
                     const userResponse = await dispatch(getUser(event.organisateur_id));
@@ -177,11 +175,11 @@ export const getAllEvents = () => async (dispatch) => {
 
                     return {
                         ...event,
-                        organisateur: {
+                        organisateur__: {
                             nom: userResponse?.nom || 'N/A',
                             email: userResponse?.email || 'N/A'
                         },
-                        categorie: {
+                        categorie__: {
                             nom: categoryResponse?.nom || 'N/A'
                         }
                     };
@@ -189,23 +187,22 @@ export const getAllEvents = () => async (dispatch) => {
                     console.error("Error fetching details for event:", event.id, error);
                     return {
                         ...event,
-                        organisateur: {
+                        organisateur__: {
                             nom: 'N/A',
                             email: 'N/A'
                         },
-                        categorie: {
+                        categorie__: {
                             nom: 'N/A'
                         }
                     };
                 }
             })
-        );
+        );*/
 
-        console.log("EVENTS WITH DETAILS", eventsWithDetails);
+        console.log("EVENTS WITH DETAILS", respDatas);
         dispatch(getAllEventsSuccess());
         return { 
-            ...respDatas, 
-            events: eventsWithDetails 
+            ...respDatas
         };
     } catch (error) {
         dispatch(getAllEventsFailure(error.response?.data?.message || error.message));
@@ -226,7 +223,7 @@ export const getPublicEvents = () => async (dispatch) => {
         const respDatas = response?.data;
         
         // Utilisation de Promise.all pour attendre toutes les Promises
-        const eventsWithDetails = await Promise.all(
+        /*const eventsWithDetails = await Promise.all(
             respDatas.events.map(async (event) => {
                 try {
                     //const userResponse = await dispatch(getUser(event.organisateur?.id));
@@ -234,11 +231,11 @@ export const getPublicEvents = () => async (dispatch) => {
 
                     return {
                         ...event,
-                        organisateur: {
+                        organisateur__: {
                             nom: event.organisateur?.nom || 'N/A',
                             email: event.organisateur?.email || 'N/A'
                         },
-                        categorie: {
+                        categorie__: {
                             nom: categoryResponse?.nom || 'N/A'
                         }
                     };
@@ -246,23 +243,22 @@ export const getPublicEvents = () => async (dispatch) => {
                     console.error("Error fetching details for event:", event.id, error);
                     return {
                         ...event,
-                        organisateur: {
+                        organisateur__: {
                             nom: 'N/A',
                             email: 'N/A'
                         },
-                        categorie: {
+                        categorie__: {
                             nom: 'N/A'
                         }
                     };
                 }
             })
-        );
+        );*/
 
-        console.log("EVENTS WITH DETAILS", eventsWithDetails);
+        console.log("EVENTS WITH DETAILS", respDatas);
         dispatch(getAllEventsSuccess());
         return { 
-            ...respDatas, 
-            events: eventsWithDetails 
+            ...respDatas
         };
     } catch (error) {
         dispatch(getAllEventsFailure(error.response?.data?.message || error.message));

@@ -165,7 +165,7 @@ export const getAllRegistrations = () => async (dispatch) => {
     try {
         await dispatch(checkAndRefreshTokenIfNeeded());
         const token = localStorage.getItem("token");
-        const response = await axios.get(`/registrations`, {
+        const response = await axios.get(`/registrations?all=1`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         dispatch(getAllRegistrationsSuccess(response.data));
